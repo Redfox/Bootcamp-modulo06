@@ -25,7 +25,7 @@ export default function User({ navigation }) {
   const [loadingNextPage, setLoadingNextPage] = useState(false);
   const [page, setPage] = useState(1);
   const [endReached, setEndReached] = useState(false);
-  const [refreshingList, setRefreshingList] = useState(false);
+  const [refreshingList, setRefreshingList] = useState(true);
   const storageUser = navigation.getParam('user');
 
   useEffect(() => {
@@ -39,7 +39,10 @@ export default function User({ navigation }) {
       setLoading(false);
     }
 
-    fetchData();
+    if (refreshingList) {
+      fetchData();
+    }
+
     setRefreshingList(false);
   }, [refreshingList]);
 
@@ -59,7 +62,7 @@ export default function User({ navigation }) {
       setLoadingNextPage(false);
     }
 
-    if (page > 1 || refreshingList) {
+    if (page > 1) {
       fetchData();
     }
   }, [page]);
