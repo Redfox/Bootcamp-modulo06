@@ -25,6 +25,7 @@ export default function User({ navigation }) {
   const [loadingNextPage, setLoadingNextPage] = useState(false);
   const [page, setPage] = useState(1);
   const [endReached, setEndReached] = useState(false);
+  const [refreshingList, setRefreshingList] = useState(false);
   const storageUser = navigation.getParam('user');
 
   useEffect(() => {
@@ -39,7 +40,8 @@ export default function User({ navigation }) {
     }
 
     fetchData();
-  }, []);
+    setRefreshingList(false);
+  }, [refreshingList]);
 
   useEffect(() => {
     async function fetchData() {
@@ -53,12 +55,11 @@ export default function User({ navigation }) {
         setStars([...stars, ...response.data]);
       } else {
         setEndReached(true);
-        console.tron.log('fim');
       }
       setLoadingNextPage(false);
     }
 
-    if (page > 1) {
+    if (page > 1 || refreshingList) {
       fetchData();
     }
   }, [page]);
@@ -67,6 +68,11 @@ export default function User({ navigation }) {
     if (!endReached && !loadingNextPage) {
       setPage(page + 1);
     }
+  };
+
+  const refreshList = () => {
+    setPage(1);
+    setRefreshingList(true);
   };
 
   return (
@@ -81,6 +87,8 @@ export default function User({ navigation }) {
       ) : (
         <Stars
           data={stars}
+          onRefresh={refreshList}
+          refreshing={refreshingList}
           keyExtractor={star => String(star.id)}
           onEndReachedThreshold={0.2}
           onEndReached={loadMoreStarred}
