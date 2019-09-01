@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ActivityIndicator } from 'react-native';
 import PropTypes from 'prop-types';
 import api from '../../services/api';
 
@@ -21,12 +22,17 @@ export default function User({ navigation }) {
   const user = navigation.getParam('user');
   const [stars, setStars] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingNextPage, setLoadingNextPage] = useState(false);
+  const [page, setPage] = useState(1);
+  const [endReached, setEndReached] = useState(false);
+  const storageUser = navigation.getParam('user');
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      const storageUser = navigation.getParam('user');
-      const response = await api.get(`/users/${storageUser.login}/starred`);
+      const response = await api.get(
+        `/users/${storageUser.login}/starred?page=${page}`
+      );
 
       setStars(response.data);
       setLoading(false);
@@ -34,6 +40,34 @@ export default function User({ navigation }) {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoadingNextPage(true);
+
+      const response = await api.get(
+        `/users/${storageUser.login}/starred?page=${page}`
+      );
+
+      if (response.data.length > 0) {
+        setStars([...stars, ...response.data]);
+      } else {
+        setEndReached(true);
+        console.tron.log('fim');
+      }
+      setLoadingNextPage(false);
+    }
+
+    if (page > 1) {
+      fetchData();
+    }
+  }, [page]);
+
+  const loadMoreStarred = () => {
+    if (!endReached && !loadingNextPage) {
+      setPage(page + 1);
+    }
+  };
 
   return (
     <Container>
@@ -48,6 +82,8 @@ export default function User({ navigation }) {
         <Stars
           data={stars}
           keyExtractor={star => String(star.id)}
+          onEndReachedThreshold={0.2}
+          onEndReached={loadMoreStarred}
           renderItem={({ item }) => (
             <Starred>
               <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
@@ -59,6 +95,7 @@ export default function User({ navigation }) {
           )}
         />
       )}
+      {loadingNextPage && <ActivityIndicator color="#7159c1" />}
     </Container>
   );
 }
