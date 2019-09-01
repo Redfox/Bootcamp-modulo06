@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { WebView } from 'react-native-webview';
 import PropTypes from 'prop-types';
 import api from '../../services/api';
 
@@ -78,6 +79,10 @@ export default function User({ navigation }) {
     setRefreshingList(true);
   };
 
+  const openStarredRepo = item => {
+    navigation.navigate('Repo', { url: item.html_url, name: item.name });
+  };
+
   return (
     <Container>
       <Header>
@@ -96,7 +101,7 @@ export default function User({ navigation }) {
           onEndReachedThreshold={0.2}
           onEndReached={loadMoreStarred}
           renderItem={({ item }) => (
-            <Starred>
+            <Starred onPress={() => openStarredRepo(item)}>
               <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
               <Info>
                 <Title>{item.name}</Title>
@@ -118,5 +123,6 @@ User.navigationOptions = ({ navigation }) => ({
 User.propTypes = {
   navigation: PropTypes.shape({
     getParam: PropTypes.func,
+    navigate: PropTypes.func,
   }).isRequired,
 };
