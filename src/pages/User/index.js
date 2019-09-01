@@ -14,18 +14,22 @@ import {
   Info,
   Title,
   Author,
+  Loading,
 } from './styles';
 
 export default function User({ navigation }) {
   const user = navigation.getParam('user');
   const [stars, setStars] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       const storageUser = navigation.getParam('user');
       const response = await api.get(`/users/${storageUser.login}/starred`);
 
       setStars(response.data);
+      setLoading(false);
     }
 
     fetchData();
@@ -38,20 +42,23 @@ export default function User({ navigation }) {
         <Name>{user.name}</Name>
         <Bio>{user.bio}</Bio>
       </Header>
-
-      <Stars
-        data={stars}
-        keyExtractor={star => String(star.id)}
-        renderItem={({ item }) => (
-          <Starred>
-            <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
-            <Info>
-              <Title>{item.name}</Title>
-              <Author>{item.owner.login}</Author>
-            </Info>
-          </Starred>
-        )}
-      />
+      {loading ? (
+        <Loading />
+      ) : (
+        <Stars
+          data={stars}
+          keyExtractor={star => String(star.id)}
+          renderItem={({ item }) => (
+            <Starred>
+              <OwnerAvatar source={{ uri: item.owner.avatar_url }} />
+              <Info>
+                <Title>{item.name}</Title>
+                <Author>{item.owner.login}</Author>
+              </Info>
+            </Starred>
+          )}
+        />
+      )}
     </Container>
   );
 }
